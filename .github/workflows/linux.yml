@@ -1,0 +1,54 @@
+name: linux
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  latest-glibc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --verbose
+      - name: Copy Files
+        run: |
+          sudo cp target/debug/assert_false /
+          sudo cp target/debug/assert_true /
+      - name: Setuid
+        run: |
+          sudo chown root:root /assert_false
+          sudo chown root:root /assert_true
+          sudo chmod u+s /assert_true
+      - name: Run tests
+        run: |
+          /assert_true
+          /assert_false
+  latest-musl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          sudo apt-get install musl musl-tools
+      - name: Build
+        run: cargo build --target x86_64-unknown-linux-musl --verbose
+      - name: Copy Files
+        run: |
+          sudo cp target/x86_64-unknown-linux-musl/debug/assert_false /
+          sudo cp target/x86_64-unknown-linux-musl/debug/assert_true /
+      - name: Setuid
+        run: |
+          sudo chown root:root /assert_false
+          sudo chown root:root /assert_true
+          sudo chmod u+s /assert_true
+      - name: Run tests
+        run: |
+          /assert_true
+          /assert_false

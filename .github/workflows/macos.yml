@@ -1,0 +1,31 @@
+name: macos
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  latest:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --verbose
+    - name: Copy Files
+      run: |
+        sudo cp target/debug/assert_false .
+        sudo cp target/debug/assert_true .
+    - name: Setuid
+      run: |
+        sudo chown root ./assert_false
+        sudo chown root ./assert_true
+        sudo chmod u+s ./assert_true
+    - name: Run tests
+      run: |
+        ./assert_true
+        ./assert_false
